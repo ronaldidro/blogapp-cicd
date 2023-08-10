@@ -1,0 +1,38 @@
+name: Periodic Health Check
+
+on:
+  schedule:
+    - cron: "0 12 * * * *"
+
+jobs:
+  http_health_check:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check the deployed service URL
+        uses: jtalk/url-health-check-action@v3
+        with:
+          # Check the following URLs one by one sequentially
+          url: https://blog-app-8edv.onrender.com/api/health
+          # Follow redirects, or just report success on 3xx status codes
+          follow-redirect: false # Optional, defaults to "false"
+          # Fail this action after this many failed attempts
+          max-attempts: 3 # Optional, defaults to 1
+          # Delay between retries
+          retry-delay: 5s # Optional, only applicable to max-attempts > 1
+          # Retry all errors, including 404. This option might trigger curl upgrade.
+          retry-all: false # Optional, defaults to "false"
+      - uses: actions/checkout@v3
+      - name: Discord notification success
+        uses: rjstone/discord-webhook-notify@v1
+        if: success()
+        with:
+          severity: info
+          details: Health check on https://blog-app-8edv.onrender.com success
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+      - name: Discord notification failure
+        uses: rjstone/discord-webhook-notify@v1
+        if: failure()
+        with:
+          severity: error
+          details: Health check on https://blog-app-8edv.onrender.com failure
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
