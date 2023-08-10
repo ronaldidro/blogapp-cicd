@@ -1,0 +1,54 @@
+name: Deployment pipeline
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize]
+
+jobs:
+  deployment_pipeline:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "15"
+      - name: Install dependencies
+        run: npm install
+      - name: Check style
+        run: npm run lint
+      - name: Build app
+        run: npm run build
+      - name: Deploy to Render
+        if: ${{ github.event_name == 'push' && !contains(toJson(join(github.event.commits.*.message)), '#skip') }}
+        run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}
+      - name: Notify success on Discord
+        uses: rjstone/discord-webhook-notify@v1
+        if: ${{ success() && !contains(toJson(join(github.event.commits.*.message)), '#skip') }}
+        with:
+          severity: info
+          text: A new version of Blog App deployed
+          description: to https://blog-app-8edv.onrender.com/ by ${{ toJSon(github.event.head_commit.author.username) }}
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+      - name: Notify failure on Discord
+        uses: rjstone/discord-webhook-notify@v1
+        if: ${{ failure() }}
+        with:
+          severity: error
+          text: Build failed
+          description: commit ${{ toJson(github.event.head_commit.url) }} by ${{ toJSon(github.event.head_commit.author.username) }} broke the build :(
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+  tag_release:
+    needs: [simple_deployment_pipeline]
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Bump version and push tag
+        if: ${{ github.event_name == 'push' && !contains(toJson(join(github.event.commits.*.message)), '#skip') }}
+        uses: anothrNick/github-tag-action@a2c70ae13a881faf2b4953baaa9e49731997ab36
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: patch

@@ -14,4 +14,6 @@ router.use('/login', login)
 router.use('/blogs', blogs)
 router.use('/users', users)
 
+router.get('/health', (req, res) => res.send('ok'))
+
 module.exports = router
