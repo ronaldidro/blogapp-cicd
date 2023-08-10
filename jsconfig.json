@@ -4,6 +4,7 @@
     "allowSyntheticDefaultImports": false,
     "baseUrl": "./",
     "paths": {
+      "@models/*": ["server/models/*"],
       "@controllers/*": ["server/controllers/*"],
       "@middleware/*": ["server/middleware/*"],
       "@util/*": ["server/util/*"],

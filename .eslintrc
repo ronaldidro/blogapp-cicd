@@ -1,8 +1,17 @@
 {
-  "extends": "airbnb",
+  "extends": [ 
+    "eslint:recommended",
+    "plugin:react/recommended"
+  ],
+  "settings": {
+    "react": {
+      "version": "16.12"
+    }
+  },
   "parser": "babel-eslint",
   "env": {
-    "browser": true
+    "browser": true,
+    "node": true 
   },
   "rules": {
     "semi": [
@@ -14,6 +23,7 @@
     "no-plusplus": 0,
     "import/no-unresolved": "off",
     "react/jsx-filename-extension": "off",
+    "react/display-name": "off",
     "react/prop-types": [
       1,
       {

@@ -3,9 +3,10 @@ require('module-alias/register')
 const chokidar = require('chokidar')
 const express = require('express')
 const path = require('path')
+const mongoose = require('mongoose')
 require('express-async-errors')
 
-const { PORT, inProduction } = require('@util/common')
+const { MONGODB_URI, PORT, inProduction } = require('@util/common')
 
 const app = express()
 
@@ -57,6 +58,14 @@ if (!inProduction) {
   app.use(express.static(DIST_PATH))
   app.get('*', (req, res) => res.sendFile(INDEX_PATH))
 }
+
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+    console.log('Connected to MongoDB')
+  })
+  .catch((error) => {
+    console.error('Error connection to MongoDB:', error.message)
+  })
 
 app.listen(PORT, () => {
   console.log(`Started on port ${PORT}`)
